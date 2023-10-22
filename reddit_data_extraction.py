@@ -16,33 +16,36 @@ reddit = praw.Reddit(
     user_agent=user_agent,
 )
 
-subreddit = reddit.subreddit("nycrail")
-
-top_posts = subreddit.top(limit=10)
+# Define subreddits and fields for data collection
+subreddit_list = ["basketball", "nba", "rockets"]
 all_data = []
 
-for post in top_posts:
-    post_data = {
-        "title": post.title,
-        "text": post.selftext,
-        "id": post.id,
-        "author": str(post.author),  # converting Redditor object to string
-        "url": post.url,
-        "score": post.score,
-        "comment_count": post.num_comments,
-        "created": post.created_utc,
-        "comments": [],
-        "upvote_ratio": post.upvote_ratio,
-        "crossposts": post.num_crossposts,
-    }
+for i in subreddit_list:
+    subreddit = reddit.subreddit(i)
+    top_posts = subreddit.top(limit=10)
+    for post in top_posts:
+        post_data = {
+            "subreddit": i,
+            "title": post.title,
+            "text": post.selftext,
+            "id": post.id,
+            "author": str(post.author),  # converting Redditor object to string
+            "url": post.url,
+            "score": post.score,
+            "comment_count": post.num_comments,
+            "created": post.created_utc,
+            "comments": [],
+            "upvote_ratio": post.upvote_ratio,
+            "crossposts": post.num_crossposts,
+        }
 
-    post_comments = post.comments
-    for comment in post_comments[:2]:
-        comment_data = {"body": comment.body, "author": str(comment.author)}
-        # Adding the comment dictionary to the 'comments' list of the post
-        post_data["comments"].append(comment_data)
+        post_comments = post.comments
+        for comment in post_comments[:2]:
+            comment_data = {"body": comment.body, "author": str(comment.author)}
+            # Adding the comment dictionary to the 'comments' list of the post
+            post_data["comments"].append(comment_data)
 
-    all_data.append(post_data)
+        all_data.append(post_data)
 
 json_allData = json.dumps(all_data)
 
