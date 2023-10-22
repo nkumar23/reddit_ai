@@ -18,26 +18,25 @@ with open("reddit_data.json", "r", encoding="utf-8") as jsonfile:
     json_string = jsonfile.read()
 
 data = json.loads(json_string)
+chunk_size = 5  # Number of posts per chunk
+chunks = [data[i : i + chunk_size] for i in range(0, len(data), chunk_size)]
 
-# call OpenAI API with prompt and JSON data
+messages = [{"role": "system", "content": "You are a helpful assistant."}]
 
-completion = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {
-            "role": "user",
-            "content": "The following data is a JSON file containing posts and comments information from the NYC Transit subreddit on Reddit. Then provide a recommendation for new topics for educational programming at a transit museum based on the Reddit comments.",
-        },
-        {"role": "user", "content": str(data)},
-    ],
+# Send each chunk as context
+for chunk in chunks:
+    chunk_string = json.dumps(chunk)
+    messages.append({"role": "user", "content": chunk_string})
+
+# Now, after all chunks have been sent as context, ask for the recommendation
+messages.append(
+    {
+        "role": "user",
+        "content": "Based on the provided data from Reddit about basketball, provide a recommendation for new topics for educational programming at the NBA Hall of Fame museum.",
+    }
 )
 
-# print output to console
+completion = openai.ChatCompletion.create(model="gpt-3.5-turbo-16k", messages=messages)
 
-completion_data = completion.choices[0].message
-content = completion_data["content"]
-
-lines = content.split("\n")
-for line in lines:
-    print(f"--> {line}")
+response = completion.choices[0].message["content"]
+print(response)
